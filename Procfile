@@ -1,1 +1,1 @@
-web: gunicorn pptgen_project.wsgi
+web: gunicorn your_project.wsgi --timeout 1000
