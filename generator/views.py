@@ -4,14 +4,8 @@ from pptx import Presentation
 from pptx.util import Pt
 from io import BytesIO
 import google.generativeai as genai
-import sys
-import io
 
 def home(request):
-    # Initialize variable to capture print statements
-    # print_output = io.StringIO()
-    # sys.stdout = print_output  # Redirect print to StringIO
-
     if request.method == 'POST':
         api_key = request.POST['api_key']
         title = request.POST['title']
@@ -21,19 +15,23 @@ def home(request):
         model = genai.GenerativeModel('models/gemini-2.5-flash-preview-04-17')
 
         # Prompt for the presentation agenda generation
-        prompt = f"give me presentation agenda list of 6 elements about: {title} , and give me the list separated by ',' and noting else not description or else just 6 elements separated by ','"
+        prompt = (
+            f"give me presentation agenda list of 6 elements about: {title}, "
+            f"and give me the list separated by ',' and nothing else. "
+            f"No description, just 6 elements separated by commas."
+        )
         try:
             # Generate content for the agenda
             response = model.generate_content(prompt)
             content = response.text.strip()
-            print(f"Agenda generated: {content}")
+            print(f"[INFO] Agenda generated: {content}")
         except Exception as e:
-            print(f"Error generating content: {e}")
+            print(f"[ERROR] Gemini API failed: {e}")
             return HttpResponse(f"<h3>Error generating content: {e}</h3>")
 
         # Split the content into agenda items
-        agenda_items = content.split(",")
-        print(f"Agenda items: {agenda_items}")
+        agenda_items = [item.strip() for item in content.split(",")]
+        print(f"[INFO] Agenda items parsed: {agenda_items}")
 
         # Create a PowerPoint presentation
         prs = Presentation()
@@ -43,67 +41,53 @@ def home(request):
         slide.shapes.title.text = title
         slide.placeholders[1].text = "An AI-generated presentation"
 
-        # Agendas Slide
+        # Agenda Slide
         slide = prs.slides.add_slide(prs.slide_layouts[1])
         slide.shapes.title.text = "Agenda"
-        agenda_content = "\n".join([f"{i+1}. {agenda}" for i, agenda in enumerate(agenda_items)])
-        slide.placeholders[1].text = agenda_content
+        agenda_text = "\n".join([f"{i+1}. {agenda}" for i, agenda in enumerate(agenda_items)])
+        slide.placeholders[1].text = agenda_text
 
-        # Helper function to set font size and fit text
+        # Set font size helper
         def set_font_size(placeholder, font_size=18):
             if placeholder.has_text_frame:
                 for paragraph in placeholder.text_frame.paragraphs:
                     for run in paragraph.runs:
                         run.font.size = Pt(font_size)
 
-        # Create individual slides for each agenda item
-        for i, agenda_item in enumerate(agenda_items):
-            if agenda_item.strip():  # Skip any empty agenda item
-                # Create a new slide with heading and content for each agenda item
+        # Individual agenda slides
+        for i, item in enumerate(agenda_items):
+            if item:
+                print(f"[INFO] Generating slide for agenda {i+1}: {item}")
                 slide = prs.slides.add_slide(prs.slide_layouts[1])
-                slide.shapes.title.text = f"Agenda {i+1}: {agenda_item.strip()}"
+                slide.shapes.title.text = f"Agenda {i+1}: {item}"
 
-                # Generate content for each agenda item (optional, adjust logic as needed)
-                agenda_content_response = model.generate_content(f"Provide short content for the agenda item in 3 to 4 points: {agenda_item.strip()}")
-                agenda_content = agenda_content_response.text.strip()
+                try:
+                    detail_response = model.generate_content(
+                        f"Provide short content in 3 to 4 points for: {item}"
+                    )
+                    agenda_details = detail_response.text.strip().replace("*", "")
+                except Exception as e:
+                    agenda_details = "Content generation failed."
+                    print(f"[WARN] Failed content for {item}: {e}")
 
-                # Remove any unwanted formatting (like stars for bold)
-                agenda_content = agenda_content.replace("*", "")  # Remove stars used for bold formatting
+                # Add content to slide
+                textbox = slide.placeholders[1]
+                if len(agenda_details) > 800:
+                    agenda_details = agenda_details[:800] + "..."
+                textbox.text = agenda_details
+                set_font_size(textbox)
 
-                # Add the content related to the agenda item
-                textbox = slide.shapes.placeholders[1]
-                textbox.text = agenda_content
-
-                # Set font size for the content
-                set_font_size(textbox, font_size=18)
-
-                # Ensure content fits within the slide
-                if len(agenda_content) > 800:  # If content is too long, trim it
-                    agenda_content = agenda_content[:800] + "..."
-                    textbox.text = agenda_content
-                    set_font_size(textbox, font_size=18)
-
-                print(f"Slide {i+1} generated")
-
-        # Save the presentation to a file
+        # Save and return presentation
         ppt_io = BytesIO()
         prs.save(ppt_io)
-        print("saved ppt")
+        print("[INFO] PPT generation complete")
 
         response = HttpResponse(
             ppt_io.getvalue(),
             content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation'
         )
         response['Content-Disposition'] = 'attachment; filename=generated.pptx'
-
-        print("ppt redy to send")
-        return response  # 👈 this will trigger the file download
-
-        # # Reset standard output to terminal (after capturing print statements)
-        # sys.stdout = sys.__stdout__
-        # print("reset and returning")
-        # # Render the form with captured print statements
-        #
-        # return render(request, 'form.html', {'print_output': print_output.getvalue()})
+        print("[INFO] PPT sent for download")
+        return response
 
     return render(request, 'form.html')
