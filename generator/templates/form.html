@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>PPT Generator</title></head>
+<body>
+<h1>Create Your Slide</h1>
+<form method="post">
+    {% csrf_token %}
+    <label>Title:</label><br>
+    <input type="text" name="title"><br><br>
+    <label>Content:</label><br>
+    <textarea name="content"></textarea><br><br>
+    <button type="submit">Generate PPT</button>
+</form>
+</body>
+</html>

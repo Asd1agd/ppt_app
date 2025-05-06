@@ -1,0 +1,1 @@
+web: gunicorn pptgen_project.wsgi
