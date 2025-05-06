@@ -21,7 +21,7 @@ def home(request):
         model = genai.GenerativeModel('models/gemini-2.5-flash-preview-04-17')
 
         # Prompt for the presentation agenda generation
-        prompt = f"give me presentation agenda list of 6 elements about: {title} , and give me the list separated by ',' and noting else not description or else just 10 elements separated by ','"
+        prompt = f"give me presentation agenda list of 6 elements about: {title} , and give me the list separated by ',' and noting else not description or else just 6 elements separated by ','"
         try:
             # Generate content for the agenda
             response = model.generate_content(prompt)
@@ -88,6 +88,7 @@ def home(request):
         # Save the presentation to a file
         ppt_io = BytesIO()
         prs.save(ppt_io)
+        print("saved ppt")
 
         response = HttpResponse(
             ppt_io.getvalue(),
@@ -95,9 +96,10 @@ def home(request):
         )
         response['Content-Disposition'] = 'attachment; filename=generated.pptx'
 
+        print("ppt redy to send")
         # Reset standard output to terminal (after capturing print statements)
         sys.stdout = sys.__stdout__
-
+        print("reset and returning")
         # Render the form with captured print statements
         return render(request, 'form.html', {'print_output': print_output.getvalue()})
 
