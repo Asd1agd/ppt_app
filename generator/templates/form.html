@@ -1,20 +1,26 @@
-<!-- templates/form.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PPT Generator with Gemini</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate PowerPoint</title>
 </head>
 <body>
-    <h1>Generate a PPT using Gemini</h1>
-    <form method="post">
+    <h1>Generate PowerPoint Presentation</h1>
+    <form method="POST">
         {% csrf_token %}
-        <label for="api_key">Gemini API Key:</label><br>
+        <label for="api_key">API Key:</label>
         <input type="text" id="api_key" name="api_key" required><br><br>
 
-        <label for="title">Presentation Title:</label><br>
+        <label for="title">Presentation Title:</label>
         <input type="text" id="title" name="title" required><br><br>
 
-        <input type="submit" value="Generate PPT">
+        <button type="submit">Generate PPT</button>
     </form>
+
+    {% if print_output %}
+    <h2>Process Output:</h2>
+    <pre>{{ print_output }}</pre>
+    {% endif %}
 </body>
 </html>
