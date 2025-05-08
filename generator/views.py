@@ -141,7 +141,7 @@ def home(request):
         ppt_Title(slide1, prompt)
 
         # Agendas Slide
-        slide2 = new_ppt.slides.add_slide(template.slides[11].slide_layout)
+        slide2 = new_ppt.slides.add_slide(template.slides[-3].slide_layout)
         ppt_heading(slide2, "               " + "Agenda")
         agenda_content = "\n".join([f"{i + 1}. {agenda}" for i, agenda in enumerate(agenda_items)])
         ppt_content(slide2, agenda_content, space="\n       ")
