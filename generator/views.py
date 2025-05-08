@@ -8,7 +8,7 @@ from io import BytesIO
 import google.generativeai as genai
 import random
 
-def ppt_Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
+def ppt_Title(slide,data,font = 'Arial',font_size =54,clr =[0,0,0], Top = 2.5):
     # Fixed left
     left = Inches(6.65)
     top = Inches(Top)
@@ -36,7 +36,7 @@ def ppt_Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top
     p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
     p.alignment = PP_ALIGN.CENTER
 
-def ppt_heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], Top = -0.3):
+def ppt_heading(slide,data,font = 'Arial',font_size =32,clr =[0,0,0], Top = -0.3):
     # Fixed left
     left = Inches(6.65)
     top = Inches(Top)
@@ -67,7 +67,7 @@ def ppt_heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], T
     # textbox.fill.solid()
     # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
 
-def ppt_content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], Top = 1,space=""):
+def ppt_content(slide,data,font = 'Arial',font_size=20,clr =[0,0,0], Top = 1,space=""):
     # Fixed left
     left = Inches(6.65)
     top = Inches(Top)
@@ -100,6 +100,7 @@ def ppt_content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], To
     # textbox.fill.solid()
     # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
 
+# Century Gothic
 
 def home(request):
     if request.method == 'POST':
