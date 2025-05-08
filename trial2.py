@@ -131,7 +131,7 @@ def content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], Top = 
     # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
 
 # Title Slide
-slide1 = new_ppt.slides.add_slide(template.slides[0].slide_layout)
+slide1 = new_ppt.slides.add_slide(template.slides[1].slide_layout)
 Title(slide1,prompt)
 
 # Agendas Slide

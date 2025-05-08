@@ -137,11 +137,11 @@ def home(request):
         print(f"[INFO] Agenda items parsed: {agenda_items}")
 
         # Title Slide
-        slide1 = new_ppt.slides.add_slide(template.slides[0].slide_layout)
+        slide1 = new_ppt.slides.add_slide(template.slides[1].slide_layout)
         ppt_Title(slide1, prompt)
 
         # Agendas Slide
-        slide2 = new_ppt.slides.add_slide(template.slides[10].slide_layout)
+        slide2 = new_ppt.slides.add_slide(template.slides[11].slide_layout)
         ppt_heading(slide2, "               " + "Agenda")
         agenda_content = "\n".join([f"{i + 1}. {agenda}" for i, agenda in enumerate(agenda_items)])
         ppt_content(slide2, agenda_content, space="\n       ")
@@ -151,7 +151,7 @@ def home(request):
             if item.strip():
                 print(f"[INFO] Generating slide for agenda {i+1}: {item}")
                 # Create a new slide with heading and content for each agenda item
-                slide_no = random.randint(2, 6)
+                slide_no = random.randint(3, 7)
                 slide = new_ppt.slides.add_slide(template.slides[slide_no].slide_layout)
                 Agenda_no = f"Agenda {i + 1}: {item.strip()}"
                 ppt_heading(slide, Agenda_no)
