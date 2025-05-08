@@ -137,7 +137,7 @@ def home(request):
         print(f"[INFO] Agenda items parsed: {agenda_items}")
 
         # Title Slide
-        slide1 = new_ppt.slides.add_slide(template.slides[1].slide_layout)
+        slide1 = new_ppt.slides.add_slide(template.slides[0].slide_layout)
         ppt_Title(slide1, title)
 
         # Agendas Slide
