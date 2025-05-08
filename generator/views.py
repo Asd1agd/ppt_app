@@ -138,7 +138,7 @@ def home(request):
 
         # Title Slide
         slide1 = new_ppt.slides.add_slide(template.slides[1].slide_layout)
-        ppt_Title(slide1, prompt)
+        ppt_Title(slide1, title)
 
         # Agendas Slide
         slide2 = new_ppt.slides.add_slide(template.slides[-3].slide_layout)
