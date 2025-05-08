@@ -1,13 +1,116 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from pptx import Presentation
-from pptx.util import Pt
+from pptx.util import Inches, Pt
+from pptx.dml.color import RGBColor
+from pptx.enum.text import PP_ALIGN
 from io import BytesIO
 import google.generativeai as genai
+import random
+
+# Load template
+template = Presentation(rf"data/formatPpt2.pptx")
+new_ppt = Presentation()
+new_ppt.slide_width = template.slide_width
+new_ppt.slide_height = template.slide_height
+
+def Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
+    # Fixed left
+    left = Inches(6.65)
+    top = Inches(Top)
+    font_size_pt = font_size
+    sp = "                                                                                    \n"
+    text = f"{sp}{data}"
+
+    # Add textbox
+    textbox = slide.shapes.add_textbox(left, top, 0, 0)
+    text_frame = textbox.text_frame
+    text_frame.text = text
+
+    # Style
+    p = text_frame.paragraphs[0]
+    p.font.size = Pt(32)
+    p.font.name = f'{font}'
+    p.font.bold = True
+    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.alignment = PP_ALIGN.LEFT
+
+    p = text_frame.paragraphs[1]
+    p.font.size = Pt(font_size_pt)
+    p.font.name = f'{font}'
+    p.font.bold = True
+    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.alignment = PP_ALIGN.CENTER
+
+def heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], Top = -0.3):
+    # Fixed left
+    left = Inches(6.65)
+    top = Inches(Top)
+    font_size_pt = font_size
+    sp = "                                                                                    \n"
+    text = f"{sp}  {data}"
+
+    # Add textbox
+    textbox = slide.shapes.add_textbox(left, top, 0, 0)
+    text_frame = textbox.text_frame
+    text_frame.text = text
+
+    # Style
+    p = text_frame.paragraphs[0]
+    p.font.size = Pt(32)
+    p.font.name = f'{font}'
+    p.font.bold = True
+    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.alignment = PP_ALIGN.LEFT
+
+    p = text_frame.paragraphs[1]
+    p.font.size = Pt(font_size_pt)
+    p.font.name = f'{font}'
+    p.font.bold = True
+    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.alignment = PP_ALIGN.LEFT
+
+    # textbox.fill.solid()
+    # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
+
+def content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], Top = 1,space=""):
+    # Fixed left
+    left = Inches(6.65)
+    top = Inches(Top)
+    font_size_pt = font_size
+    sp = "                                                                                    \n"
+    text = f"{sp}{data}"
+    text = text.replace("\n",f"\n  {space}")
+
+    # Add textbox
+    textbox = slide.shapes.add_textbox(left, top, 0, 0)
+    text_frame = textbox.text_frame
+    text_frame.text = text
+
+    # Style
+    p = text_frame.paragraphs[0]
+    p.font.size = Pt(32)
+    p.font.name = f'{font}'
+    p.font.bold = True
+    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.alignment = PP_ALIGN.LEFT
+
+    for i in range(len(text.split('\n')) - 1):
+        p = text_frame.paragraphs[i + 1]
+        p.font.size = Pt(font_size_pt)
+        p.font.name = f'{font}'
+        p.font.bold = True
+        p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+        p.alignment = PP_ALIGN.LEFT
+
+    # textbox.fill.solid()
+    # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
+
 
 def home(request):
     if request.method == 'POST':
         api_key = request.POST['api_key']
+        api_key = "AIzaSyBibUXKKGzdH-mErjMjNgYDY0kuxe4pK_I"
         title = request.POST['title']
 
         # Configure Gemini API
@@ -33,37 +136,29 @@ def home(request):
         agenda_items = [item.strip() for item in content.split(",")]
         print(f"[INFO] Agenda items parsed: {agenda_items}")
 
-        # Create a PowerPoint presentation
-        prs = Presentation()
-
         # Title Slide
-        slide = prs.slides.add_slide(prs.slide_layouts[0])
-        slide.shapes.title.text = title
-        slide.placeholders[1].text = "An AI-generated presentation"
+        slide1 = new_ppt.slides.add_slide(template.slides[0].slide_layout)
+        Title(slide1, prompt)
 
-        # Agenda Slide
-        slide = prs.slides.add_slide(prs.slide_layouts[1])
-        slide.shapes.title.text = "Agenda"
-        agenda_text = "\n".join([f"{i+1}. {agenda}" for i, agenda in enumerate(agenda_items)])
-        slide.placeholders[1].text = agenda_text
-
-        # Set font size helper
-        def set_font_size(placeholder, font_size=18):
-            if placeholder.has_text_frame:
-                for paragraph in placeholder.text_frame.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.size = Pt(font_size)
+        # Agendas Slide
+        slide2 = new_ppt.slides.add_slide(template.slides[10].slide_layout)
+        heading(slide2, "               " + "Agenda")
+        agenda_content = "\n".join([f"{i + 1}. {agenda}" for i, agenda in enumerate(agenda_items)])
+        content(slide2, agenda_content, space="\n       ")
 
         # Individual agenda slides
         for i, item in enumerate(agenda_items):
-            if item:
+            if item.strip():
                 print(f"[INFO] Generating slide for agenda {i+1}: {item}")
-                slide = prs.slides.add_slide(prs.slide_layouts[1])
-                slide.shapes.title.text = f"Agenda {i+1}: {item}"
+                # Create a new slide with heading and content for each agenda item
+                slide_no = random.randint(2, 6)
+                slide = new_ppt.slides.add_slide(template.slides[slide_no].slide_layout)
+                Agenda_no = f"Agenda {i + 1}: {item.strip()}"
+                heading(slide, Agenda_no)
 
                 try:
                     detail_response = model.generate_content(
-                        f"Provide short content in 3 to 4 points for: {item}"
+                        f"Provide short content for the agenda item in 5 to 6 points: {item.strip()} and just give me the content points nothing else not any coment or description from your side"
                     )
                     agenda_details = detail_response.text.strip().replace("*", "")
                 except Exception as e:
@@ -71,15 +166,11 @@ def home(request):
                     print(f"[WARN] Failed content for {item}: {e}")
 
                 # Add content to slide
-                textbox = slide.placeholders[1]
-                if len(agenda_details) > 800:
-                    agenda_details = agenda_details[:800] + "..."
-                textbox.text = agenda_details
-                set_font_size(textbox)
+                content(slide, agenda_details, space="\n    ")
 
         # Save and return presentation
         ppt_io = BytesIO()
-        prs.save(ppt_io)
+        new_ppt.save(ppt_io)
         print("[INFO] PPT generation complete")
 
         response = HttpResponse(
