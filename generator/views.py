@@ -8,12 +8,6 @@ from io import BytesIO
 import google.generativeai as genai
 import random
 
-# Load template
-template = Presentation("formatPpt2.pptx")
-new_ppt = Presentation()
-new_ppt.slide_width = template.slide_width
-new_ppt.slide_height = template.slide_height
-
 def ppt_Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
     # Fixed left
     left = Inches(6.65)
@@ -109,6 +103,12 @@ def ppt_content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], To
 
 def home(request):
     if request.method == 'POST':
+        # Load template
+        template = Presentation("formatPpt2.pptx")
+        new_ppt = Presentation()
+        new_ppt.slide_width = template.slide_width
+        new_ppt.slide_height = template.slide_height
+
         api_key = request.POST['api_key']
         api_key = "AIzaSyBibUXKKGzdH-mErjMjNgYDY0kuxe4pK_I"
         title = request.POST['title']
