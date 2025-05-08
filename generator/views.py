@@ -9,7 +9,7 @@ import google.generativeai as genai
 import random
 
 # Load template
-template = Presentation(rf"data/formatPpt2.pptx")
+template = Presentation("formatPpt2.pptx")
 new_ppt = Presentation()
 new_ppt.slide_width = template.slide_width
 new_ppt.slide_height = template.slide_height
