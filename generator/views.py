@@ -14,7 +14,7 @@ new_ppt = Presentation()
 new_ppt.slide_width = template.slide_width
 new_ppt.slide_height = template.slide_height
 
-def Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
+def ppt_Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
     # Fixed left
     left = Inches(6.65)
     top = Inches(Top)
@@ -42,7 +42,7 @@ def Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2
     p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
     p.alignment = PP_ALIGN.CENTER
 
-def heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], Top = -0.3):
+def ppt_heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], Top = -0.3):
     # Fixed left
     left = Inches(6.65)
     top = Inches(Top)
@@ -73,7 +73,7 @@ def heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], Top =
     # textbox.fill.solid()
     # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
 
-def content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], Top = 1,space=""):
+def ppt_content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], Top = 1,space=""):
     # Fixed left
     left = Inches(6.65)
     top = Inches(Top)
@@ -138,13 +138,13 @@ def home(request):
 
         # Title Slide
         slide1 = new_ppt.slides.add_slide(template.slides[0].slide_layout)
-        Title(slide1, prompt)
+        ppt_Title(slide1, prompt)
 
         # Agendas Slide
         slide2 = new_ppt.slides.add_slide(template.slides[10].slide_layout)
-        heading(slide2, "               " + "Agenda")
+        ppt_heading(slide2, "               " + "Agenda")
         agenda_content = "\n".join([f"{i + 1}. {agenda}" for i, agenda in enumerate(agenda_items)])
-        content(slide2, agenda_content, space="\n       ")
+        ppt_content(slide2, agenda_content, space="\n       ")
 
         # Individual agenda slides
         for i, item in enumerate(agenda_items):
@@ -154,7 +154,7 @@ def home(request):
                 slide_no = random.randint(2, 6)
                 slide = new_ppt.slides.add_slide(template.slides[slide_no].slide_layout)
                 Agenda_no = f"Agenda {i + 1}: {item.strip()}"
-                heading(slide, Agenda_no)
+                ppt_heading(slide, Agenda_no)
 
                 try:
                     detail_response = model.generate_content(
@@ -166,7 +166,11 @@ def home(request):
                     print(f"[WARN] Failed content for {item}: {e}")
 
                 # Add content to slide
-                content(slide, agenda_details, space="\n    ")
+                ppt_content(slide, agenda_details, space="\n    ")
+
+        # Thanks Slide
+        slideL = new_ppt.slides.add_slide(template.slides[-1].slide_layout)
+        ppt_Title(slideL, "Thanks")
 
         # Save and return presentation
         ppt_io = BytesIO()
