@@ -175,6 +175,7 @@ def home(request):
         # Save and return presentation
         ppt_io = BytesIO()
         new_ppt.save(ppt_io)
+        ppt_io.seek(0)
         print("[INFO] PPT generation complete")
 
         response = HttpResponse(
