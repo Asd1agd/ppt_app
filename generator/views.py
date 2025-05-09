@@ -8,6 +8,8 @@ from io import BytesIO
 import google.generativeai as genai
 import random
 
+# kk
+
 def ppt_Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
     # Fixed left
     left = Inches(6.65)
