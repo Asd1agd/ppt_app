@@ -104,7 +104,7 @@ def ppt_content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], To
 def home(request):
     if request.method == 'POST':
         # Load template
-        template = Presentation("formatPpt2.pptx")
+        template = Presentation("formatPpt.pptx")
         new_ppt = Presentation()
         new_ppt.slide_width = template.slide_width
         new_ppt.slide_height = template.slide_height
