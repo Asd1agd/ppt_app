@@ -157,7 +157,7 @@ def home(request):
 
                 try:
                     detail_response = model.generate_content(
-                        f"Provide short content for the agenda item in 4 to 5 points: {item.strip()} and just give me the content points nothing else not any coment or description from your side"
+                        f"Provide short content for the agenda item in 5 to 6 points: {item.strip()} and just give me the content points nothing else not any coment or description from your side"
                     )
                     agenda_details = detail_response.text.strip().replace("*", "")
                 except Exception as e:
