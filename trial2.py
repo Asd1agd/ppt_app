@@ -3,9 +3,24 @@ import google.generativeai as genai
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from io import BytesIO
 import random
 
+imgPath = "formatbg.png"
+
+# --- Fix: Pass `prs` to get dimensions from presentation object
+def copy_slide(slide, image_path, prs):
+    # Use the correct method to get slide dimensions
+    slide_width = prs.slide_width
+    slide_height = prs.slide_height
+
+    # Add background image
+    bg_image = slide.shapes.add_picture(image_path, 0, 0, width=slide_width, height=slide_height)
+
+    # Send image to back
+    slide.shapes._spTree.remove(bg_image._element)
+    slide.shapes._spTree.insert(2, bg_image._element)  # Put it behind other elements
 
 # Configure Gemini
 api_key = input("Enter your Gemini API key: ")
@@ -14,163 +29,136 @@ genai.configure(api_key="AIzaSyBibUXKKGzdH-mErjMjNgYDY0kuxe4pK_I")
 model = genai.GenerativeModel('models/gemini-2.5-flash-preview-04-17')
 prompt = input("Enter the PPT title: ")
 
-# Generate content for the presentation
+# Generate agenda content
 try:
-    response = model.generate_content(f"give me presentation agenda list of 6 elements about: {prompt} , and give me the list separated by ',' and noting else not description or else just 10 elements separated by ','")
+    response = model.generate_content(f"give me presentation agenda list of 6 elements about: {prompt} , and give me the list separated by ',' and noting else not description or else just 6 elements separated by ','")
     content = response.text.strip()
 except Exception as e:
     print(f"Error generating content: {e}")
     exit()
 
-# Split the content into agenda items
 agenda_items = content.split(",")
 print(agenda_items)
 
-# def estimate_text_width(text, font_size_pt):
-#     # Estimate width: adjust factor per font (this is rough)
-#     average_char_width_in_inches = font_size_pt * 0.0057  # tweak if needed
-#     return len(text) * average_char_width_in_inches
-
-# Load template
-template = Presentation("formatPpt2.pptx")
+# Load template and new presentation
+template = Presentation("formatPpt.pptx")
 new_ppt = Presentation()
 new_ppt.slide_width = template.slide_width
 new_ppt.slide_height = template.slide_height
 
-
-def Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
-    # Fixed left
+# ---- Helper functions for text ----
+def Title(slide, data, font='Century Gothic', font_size=54, clr=[0, 0, 0], Top=2.5):
     left = Inches(6.65)
     top = Inches(Top)
-    font_size_pt = font_size
-    sp = "                                                                                    \n"
-    text = f"{sp}{data}"
+    text = f"{' '*90}\n{data}"
 
-    # Add textbox
     textbox = slide.shapes.add_textbox(left, top, 0, 0)
     text_frame = textbox.text_frame
     text_frame.text = text
 
-    # Style
     p = text_frame.paragraphs[0]
     p.font.size = Pt(32)
-    p.font.name = f'{font}'
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
     p = text_frame.paragraphs[1]
-    p.font.size = Pt(font_size_pt)
-    p.font.name = f'{font}'
+    p.font.size = Pt(font_size)
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.CENTER
 
-def heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], Top = -0.3):
-    # Fixed left
+def heading(slide, data, font='Century Gothic', font_size=32, clr=[0, 0, 0], Top=0.25):
     left = Inches(6.65)
     top = Inches(Top)
-    font_size_pt = font_size
-    sp = "                                                                                    \n"
-    text = f"{sp}  {data}"
+    text = f"{' '*90}\n      {data}"
 
-    # Add textbox
     textbox = slide.shapes.add_textbox(left, top, 0, 0)
     text_frame = textbox.text_frame
     text_frame.text = text
 
-    # Style
     p = text_frame.paragraphs[0]
     p.font.size = Pt(32)
-    p.font.name = f'{font}'
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
     p = text_frame.paragraphs[1]
-    p.font.size = Pt(font_size_pt)
-    p.font.name = f'{font}'
+    p.font.size = Pt(font_size)
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
-    # textbox.fill.solid()
-    # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
-
-def content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], Top = 1,space=""):
-    # Fixed left
+def content(slide, data, font='Century Gothic', font_size=20, clr=[0, 0, 0], Top=1, space=""):
     left = Inches(6.65)
     top = Inches(Top)
-    font_size_pt = font_size
-    sp = "                                                                                    \n"
-    text = f"{sp}{data}"
-    text = text.replace("\n",f"\n  {space}")
+    text = f"{' '*90}\n{data}".replace("\n", f"\n  {space}")
 
-    # Add textbox
     textbox = slide.shapes.add_textbox(left, top, 0, 0)
     text_frame = textbox.text_frame
     text_frame.text = text
 
-    # Style
     p = text_frame.paragraphs[0]
     p.font.size = Pt(32)
-    p.font.name = f'{font}'
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
     for i in range(len(text.split('\n')) - 1):
         p = text_frame.paragraphs[i + 1]
-        p.font.size = Pt(font_size_pt)
-        p.font.name = f'{font}'
+        p.font.size = Pt(font_size)
+        p.font.name = font
         p.font.bold = True
-        p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+        p.font.color.rgb = RGBColor(*clr)
         p.alignment = PP_ALIGN.LEFT
 
-    # textbox.fill.solid()
-    # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
-
 # Title Slide
-slide1 = new_ppt.slides.add_slide(template.slides[1].slide_layout)
-Title(slide1,prompt)
+slide1 = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+copy_slide(slide1, imgPath, new_ppt)
+Title(slide1, prompt)
 
-# Agendas Slide
-slide2 = new_ppt.slides.add_slide(template.slides[10].slide_layout)
-heading(slide2,"               "+"Agenda")
-agenda_content = "\n".join([f"{i+1}. {agenda}" for i, agenda in enumerate(agenda_items)])
-content(slide2,agenda_content,space="\n       ")
+# Agenda Slide
+slide2 = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+copy_slide(slide2, imgPath, new_ppt)
+heading(slide2, "Agenda")
+agenda_content = "\n".join([f"{i + 1}. {agenda.strip()}" for i, agenda in enumerate(agenda_items)])
+content(slide2, agenda_content, space="\n       ")
 
-
-# Create individual slides for each agenda item
+# Agenda Item Slides
 for i, agenda_item in enumerate(agenda_items):
-    if agenda_item.strip():  # Skip any empty agenda item
+    if agenda_item.strip():
         print(f"[INFO] Generating slide for agenda {i + 1}: {agenda_item}")
-        # Create a new slide with heading and content for each agenda item
-        slide_no = random.randint(2, 6)
-        slide = new_ppt.slides.add_slide(template.slides[slide_no].slide_layout)
-        Agenda_no = f"Agenda {i+1}: {agenda_item.strip()}"
-        heading(slide, Agenda_no)
+        slide = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+        copy_slide(slide, imgPath, new_ppt)
 
-        # Generate content for each agenda item (optional, adjust logic as needed)
-        agenda_content_response = model.generate_content(f"Provide short content for the agenda item in 5 to 6 points: {agenda_item.strip()} and just give me the content points nothing else not any coment or description from your side")
-        agenda_content = agenda_content_response.text.strip()
+        heading(slide, f"Agenda {i + 1}: {agenda_item.strip()}")
 
-        # Remove any unwanted formatting (like stars for bold)
-        agenda_content = agenda_content.replace("*", "")  # Remove stars used for bold formatting
+        try:
+            agenda_content_response = model.generate_content(
+                f"Provide short content for the agenda item in 5 to 6 points: {agenda_item.strip()} and just give me the content points nothing else"
+            )
+            agenda_content = agenda_content_response.text.strip().replace("*", "")
+        except Exception as e:
+            agenda_content = "[Failed to generate content]"
 
-        content(slide,agenda_content,space="\n    ")
+        content(slide, agenda_content, space="\n    ")
+        print(f"[INFO] Slide {i + 1} generated")
 
-        print(f"Slide {i+1} generated")
+# Closing Slide
+slideL = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+copy_slide(slideL, imgPath, new_ppt)
+Title(slideL, "Thanks")
 
-# Title Slide
-slideL = new_ppt.slides.add_slide(template.slides[-1].slide_layout)
-Title(slideL,"Thanks")
-
-# Save the presentation to a file
+# Save
 ppt_io = BytesIO()
 new_ppt.save(ppt_io)
 
 with open("generated.pptx", "wb") as f:
     f.write(ppt_io.getbuffer())
 
-print("Presentation generated: generated.pptx")
+print("✅ Presentation generated: generated.pptx")

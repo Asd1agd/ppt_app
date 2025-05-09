@@ -8,105 +8,99 @@ from io import BytesIO
 import google.generativeai as genai
 import random
 
+imgPath = "formatbg.png"
+
+# --- Fix: Pass `prs` to get dimensions from presentation object
+def copy_slide(slide, image_path, prs):
+    # Use the correct method to get slide dimensions
+    slide_width = prs.slide_width
+    slide_height = prs.slide_height
+
+    # Add background image
+    bg_image = slide.shapes.add_picture(image_path, 0, 0, width=slide_width, height=slide_height)
+
+    # Send image to back
+    slide.shapes._spTree.remove(bg_image._element)
+    slide.shapes._spTree.insert(2, bg_image._element)  # Put it behind other elements
 # kk
 
-def ppt_Title(slide,data,font = 'Century Gothic',font_size =54,clr =[0,0,0], Top = 2.5):
-    # Fixed left
+# ---- Helper functions for text ----
+def ppt_Title(slide, data, font='Century Gothic', font_size=54, clr=[0, 0, 0], Top=2.5):
     left = Inches(6.65)
     top = Inches(Top)
-    font_size_pt = font_size
-    sp = "                                                                                    \n"
-    text = f"{sp}{data}"
+    text = f"{' '*90}\n{data}"
 
-    # Add textbox
     textbox = slide.shapes.add_textbox(left, top, 0, 0)
     text_frame = textbox.text_frame
     text_frame.text = text
 
-    # Style
     p = text_frame.paragraphs[0]
     p.font.size = Pt(32)
-    p.font.name = f'{font}'
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
     p = text_frame.paragraphs[1]
-    p.font.size = Pt(font_size_pt)
-    p.font.name = f'{font}'
+    p.font.size = Pt(font_size)
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.CENTER
 
-def ppt_heading(slide,data,font = 'Century Gothic',font_size =32,clr =[0,0,0], Top = -0.3):
-    # Fixed left
+def ppt_heading(slide, data, font='Century Gothic', font_size=32, clr=[0, 0, 0], Top=0.25):
     left = Inches(6.65)
     top = Inches(Top)
-    font_size_pt = font_size
-    sp = "                                                                                    \n"
-    text = f"{sp}  {data}"
+    text = f"{' '*90}\n      {data}"
 
-    # Add textbox
     textbox = slide.shapes.add_textbox(left, top, 0, 0)
     text_frame = textbox.text_frame
     text_frame.text = text
 
-    # Style
     p = text_frame.paragraphs[0]
     p.font.size = Pt(32)
-    p.font.name = f'{font}'
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
     p = text_frame.paragraphs[1]
-    p.font.size = Pt(font_size_pt)
-    p.font.name = f'{font}'
+    p.font.size = Pt(font_size)
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
-    # textbox.fill.solid()
-    # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
-
-def ppt_content(slide,data,font = 'Century Gothic',font_size=20,clr =[0,0,0], Top = 1,space=""):
-    # Fixed left
+def ppt_content(slide, data, font='Century Gothic', font_size=20, clr=[0, 0, 0], Top=1, space=""):
     left = Inches(6.65)
     top = Inches(Top)
-    font_size_pt = font_size
-    sp = "                                                                                    \n"
-    text = f"{sp}{data}"
-    text = text.replace("\n",f"\n  {space}")
+    text = f"{' '*90}\n{data}".replace("\n", f"\n  {space}")
 
-    # Add textbox
     textbox = slide.shapes.add_textbox(left, top, 0, 0)
     text_frame = textbox.text_frame
     text_frame.text = text
 
-    # Style
     p = text_frame.paragraphs[0]
     p.font.size = Pt(32)
-    p.font.name = f'{font}'
+    p.font.name = font
     p.font.bold = True
-    p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+    p.font.color.rgb = RGBColor(*clr)
     p.alignment = PP_ALIGN.LEFT
 
     for i in range(len(text.split('\n')) - 1):
         p = text_frame.paragraphs[i + 1]
-        p.font.size = Pt(font_size_pt)
-        p.font.name = f'{font}'
+        p.font.size = Pt(font_size)
+        p.font.name = font
         p.font.bold = True
-        p.font.color.rgb = RGBColor(clr[0], clr[1], clr[2])
+        p.font.color.rgb = RGBColor(*clr)
         p.alignment = PP_ALIGN.LEFT
 
-    # textbox.fill.solid()
-    # textbox.fill.fore_color.rgb = RGBColor(255, 255, 0)
 
 
 def home(request):
     if request.method == 'POST':
         # Load template
-        template = Presentation("format25.pptx")
+        template = Presentation("formatPpt.pptx")
         new_ppt = Presentation()
         new_ppt.slide_width = template.slide_width
         new_ppt.slide_height = template.slide_height
@@ -139,11 +133,13 @@ def home(request):
         print(f"[INFO] Agenda items parsed: {agenda_items}")
 
         # Title Slide
-        slide1 = new_ppt.slides.add_slide(template.slides[0].slide_layout)
+        slide1 = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+        copy_slide(slide1, imgPath, new_ppt)
         ppt_Title(slide1, title)
 
         # Agendas Slide
-        slide2 = new_ppt.slides.add_slide(template.slides[-3].slide_layout)
+        slide2 = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+        copy_slide(slide2, imgPath, new_ppt)
         ppt_heading(slide2, "               " + "Agenda")
         agenda_content = "\n".join([f"{i + 1}. {agenda}" for i, agenda in enumerate(agenda_items)])
         ppt_content(slide2, agenda_content, space="\n       ")
@@ -154,7 +150,8 @@ def home(request):
                 print(f"[INFO] Generating slide for agenda {i+1}: {item}")
                 # Create a new slide with heading and content for each agenda item
                 slide_no = random.randint(3, 7)
-                slide = new_ppt.slides.add_slide(template.slides[slide_no].slide_layout)
+                slide = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+                copy_slide(slide, imgPath, new_ppt)
                 Agenda_no = f"Agenda {i + 1}: {item.strip()}"
                 ppt_heading(slide, Agenda_no)
 
@@ -171,7 +168,8 @@ def home(request):
                 ppt_content(slide, agenda_details, space="\n    ")
 
         # Thanks Slide
-        slideL = new_ppt.slides.add_slide(template.slides[-1].slide_layout)
+        slideL = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
+        copy_slide(slideL, imgPath, new_ppt)
         ppt_Title(slideL, "Thanks")
 
         # Save and return presentation
