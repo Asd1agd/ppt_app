@@ -49,7 +49,7 @@ def ppt_Title(slide, data, font='Century Gothic', font_size=54, clr=[0, 0, 0], T
     p.alignment = PP_ALIGN.CENTER
 
 def ppt_heading(slide, data, font='Century Gothic', font_size=32, clr=[0, 0, 0], Top=0.25):
-    left = Inches(6.65/2)
+    left = Inches(6.65/4)
     top = Inches(Top)
     text = f"{' '*90}\n      {data}"
 
@@ -72,7 +72,7 @@ def ppt_heading(slide, data, font='Century Gothic', font_size=32, clr=[0, 0, 0],
     p.alignment = PP_ALIGN.LEFT
 
 def ppt_content(slide, data, font='Century Gothic', font_size=20, clr=[0, 0, 0], Top=1, space=""):
-    left = Inches(6.65/2)
+    left = Inches(6.65/4)
     top = Inches(Top)
     text = f"{' '*90}\n{data}".replace("\n", f"\n  {space}")
 
