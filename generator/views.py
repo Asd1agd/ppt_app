@@ -157,7 +157,7 @@ def home(request):
 
                 try:
                     detail_response = model.generate_content(
-                        f"Provide short content for the agenda item in 5 to 6 points: {item.strip()} and just give me the content points nothing else not any coment or description from your side"
+                        f"Provide short content for the agenda item in 4 to 5 points: {item.strip()} and just give me the content points nothing else not any coment or description from your side"
                     )
                     agenda_details = detail_response.text.strip().replace("*", "")
                 except Exception as e:
@@ -165,7 +165,7 @@ def home(request):
                     print(f"[WARN] Failed content for {item}: {e}")
 
                 # Add content to slide
-                ppt_content(slide, agenda_details, space="\n    ")
+                ppt_content(slide, agenda_details, space="\n       ")
 
         # Thanks Slide
         slideL = new_ppt.slides.add_slide(new_ppt.slide_layouts[6])
